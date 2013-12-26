@@ -5,7 +5,7 @@ public final class PathUtils {
 	private PathUtils() {
 	}
 
-	public static String getCommonPath(String... paths) {
+	public static String getCommonPath(String[] paths) {
 		final String separator = "/";
 		StringBuilder ret = new StringBuilder();
 		String[][] folders = new String[paths.length][];
