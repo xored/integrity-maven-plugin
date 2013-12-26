@@ -10,6 +10,8 @@ import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.DirectoryScanner;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -17,15 +19,15 @@ import java.util.Set;
 @Mojo(name = "verify-modules", defaultPhase = LifecyclePhase.PROCESS_SOURCES, aggregator = true)
 public class VerifyMojo extends AbstractMojo {
 
-	private static final String DEFAULT_INCLUDE = "pom.xml";
+	private static final String DEFAULT_INCLUDE = "**/pom.xml";
 
 	@Parameter(defaultValue = "${reactorProjects}", readonly = true)
 	private List<MavenProject> reactorProjects;
 
-	@Parameter
+	@Parameter(property = "integrity.modules.includes")
 	private String[] includes;
 
-	@Parameter
+	@Parameter(property = "integrity.modules.excludes")
 	private String[] excludes;
 
 	private Set<String> modulePaths;
@@ -39,6 +41,10 @@ public class VerifyMojo extends AbstractMojo {
 		modulePaths = getIncludedModulePaths();
 		File root = getRoot(modulePaths);
 		getLog().info("Project root: " + root);
+		getLog().info("Recognized module paths: " + modulePaths);
+		getLog().info("Searching for missed modules...");
+		getLog().info("  includes: " + Arrays.toString(includes));
+		getLog().info("  excludes: " + Arrays.toString(excludes));
 		visitDir(root);
 		if (!missedPaths.isEmpty()) {
 			throw new MojoFailureException(null, "Some modules are missed", "" + missedPaths);
@@ -58,34 +64,34 @@ public class VerifyMojo extends AbstractMojo {
 	}
 
 	private void visitDir(File dir) {
-		if (!dir.isDirectory()) {
-			return;
-		}
-		process(dir);
-		for (File k : dir.listFiles()) {
-			visitDir(k);
+		for (File k : getFilesToProcess(dir)) {
+			process(k);
 		}
 	}
 
-	private void process(File dir) {
-		if (!isModule(dir)) {
-			return;
-		}
-		String p = dir.getAbsolutePath();
-		if (!modulePaths.contains(p)) {
-			missedPaths.add(p);
-		}
-	}
-
-	private boolean isModule(File dir) {
+	private List<File> getFilesToProcess(File dir) {
 		DirectoryScanner scanner = new DirectoryScanner();
 		scanner.setBasedir(dir);
 		scanner.setIncludes(includes);
 		scanner.setExcludes(excludes);
 		scanner.setCaseSensitive(false);
 		scanner.scan();
-		String[] files = scanner.getIncludedFiles();
-		return 0 < files.length;
+		List<File> ret = new ArrayList<File>();
+		for (String n : scanner.getIncludedFiles()) {
+			File f = new File(dir, n);
+			if (!f.isDirectory()) {
+				f = f.getParentFile();
+			}
+			ret.add(f);
+		}
+		return ret;
+	}
+
+	private void process(File dir) {
+		String p = dir.getAbsolutePath();
+		if (!modulePaths.contains(p)) {
+			missedPaths.add(p);
+		}
 	}
 
 }
