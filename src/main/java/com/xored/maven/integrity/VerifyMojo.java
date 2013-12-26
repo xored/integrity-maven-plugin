@@ -25,6 +25,9 @@ public class VerifyMojo extends AbstractMojo {
 	@Parameter
 	private String[] includes;
 
+	@Parameter
+	private String[] excludes;
+
 	private Set<String> modulePaths;
 	private Set<String> missedPaths = new HashSet<String>();
 
@@ -78,6 +81,7 @@ public class VerifyMojo extends AbstractMojo {
 		DirectoryScanner scanner = new DirectoryScanner();
 		scanner.setBasedir(dir);
 		scanner.setIncludes(includes);
+		scanner.setExcludes(excludes);
 		scanner.setCaseSensitive(false);
 		scanner.scan();
 		String[] files = scanner.getIncludedFiles();
