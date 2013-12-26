@@ -24,6 +24,9 @@ public class VerifyMojo extends AbstractMojo {
 	@Parameter(defaultValue = "${reactorProjects}", readonly = true)
 	private List<MavenProject> reactorProjects;
 
+	@Parameter(defaultValue = "${project}", readonly = true)
+	private MavenProject project;
+
 	@Parameter(property = "integrity.modules.includes")
 	private String[] includes;
 
@@ -35,6 +38,11 @@ public class VerifyMojo extends AbstractMojo {
 
 	@Override
 	public void execute() throws MojoExecutionException, MojoFailureException {
+		// TODO: is there a better way to execute this mojo only once?
+		if (reactorProjects.isEmpty() || !project.getBasedir().equals(reactorProjects.get(0).getBasedir())) {
+			return;
+		}
+
 		if (null == includes || 0 == includes.length) {
 			includes = new String[]{DEFAULT_INCLUDE};
 		}
@@ -47,7 +55,7 @@ public class VerifyMojo extends AbstractMojo {
 		getLog().info("  excludes: " + Arrays.toString(excludes));
 		visitDir(root);
 		if (!missedPaths.isEmpty()) {
-			throw new MojoFailureException(null, "Some modules are missed", "" + missedPaths);
+			throw new MojoFailureException(null, "Some modules are missing", "" + missedPaths);
 		}
 	}
 
