@@ -1,12 +1,18 @@
 package com.xored.maven.integrity;
 
+import java.io.File;
+import java.net.URI;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+
 public final class PathUtils {
 
 	private PathUtils() {
 	}
 
 	public static String getCommonPath(String[] paths) {
-		final String separator = "/";
+		final String separator = File.separator;
 		StringBuilder ret = new StringBuilder();
 		String[][] folders = new String[paths.length][];
 		for (int i = 0; i < paths.length; i++) {
@@ -36,4 +42,23 @@ public final class PathUtils {
 		}
 		return ret.toString();
 	}
+
+	public static String relativizePath(File root, String path) {
+		return relativizePaths(root, Arrays.asList(path)).iterator().next();
+	}
+
+	public static Set<String> relativizePaths(File root, Iterable<String> paths) {
+		Set<String> ret = new HashSet<String>();
+		final String separator = File.separator;
+		final URI baseUri = root.toURI();
+		for (String path : paths) {
+			String rel = baseUri.relativize(new File(path).toURI()).getPath();
+			if (rel.endsWith(separator)) {
+				rel = rel.substring(0, rel.length() - separator.length());
+			}
+			ret.add(rel);
+		}
+		return ret;
+	}
+
 }
