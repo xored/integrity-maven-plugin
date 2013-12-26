@@ -10,6 +10,7 @@ import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.DirectoryScanner;
 
 import java.io.File;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -49,14 +50,32 @@ public class VerifyMojo extends AbstractMojo {
 		modulePaths = getIncludedModulePaths();
 		File root = getRoot(modulePaths);
 		getLog().info("Project root: " + root);
-		getLog().info("Recognized module paths: " + modulePaths);
 		getLog().info("Searching for missed modules...");
 		getLog().info("  includes: " + Arrays.toString(includes));
 		getLog().info("  excludes: " + Arrays.toString(excludes));
 		visitDir(root);
 		if (!missedPaths.isEmpty()) {
-			throw new MojoFailureException(null, "Some modules are missing", "" + missedPaths);
+			throw new MojoFailureException(null, "Some modules are missing",
+				finePrint(relativizePaths(root, missedPaths)));
 		}
+	}
+
+	private static Set<String> relativizePaths(File root, Iterable<String> paths) {
+		Set<String> ret = new HashSet<String>();
+		URI baseUri = root.toURI();
+		for (String path : paths) {
+			ret.add(baseUri.relativize(new File(path).toURI()).getPath());
+		}
+		return ret;
+	}
+
+	private static String finePrint(Iterable<String> strings) {
+		StringBuilder ret = new StringBuilder();
+		for (String s : strings) {
+			ret.append(s);
+			ret.append("\n");
+		}
+		return ret.toString();
 	}
 
 	private static File getRoot(Set<String> paths) {
