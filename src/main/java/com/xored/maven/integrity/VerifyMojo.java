@@ -45,6 +45,8 @@ public class VerifyMojo extends AbstractMojo {
 
 	private Set<String> relativeKnownPaths;
 
+	private String[] targetDirExcludes;
+
 	private Set<String> missedPaths = new HashSet<String>();
 
 	@Override
@@ -57,14 +59,18 @@ public class VerifyMojo extends AbstractMojo {
 		if (null == includes || 0 == includes.length) {
 			includes = new String[]{DEFAULT_INCLUDE};
 		}
-		extendedIncludes = extendPatterns(includes);
-		extendedExcludes = extendPatterns(excludes);
+		extendedIncludes = extendPatterns(includes, false);
+		extendedExcludes = extendPatterns(excludes, false);
 		includesPatterns = createMatchPatterns(includes);
 		extendedIncludesPatterns = createMatchPatterns(extendedIncludes);
 
 		Set<String> knownPaths = getKnownPaths();
 		File root = getRoot(knownPaths);
 		relativeKnownPaths = PathUtils.relativizePaths(root, knownPaths);
+
+		Set<String> knownTargetPaths = getKnownTargetPaths();
+		targetDirExcludes = extendPatterns(PathUtils.relativizePaths(root, knownTargetPaths).toArray(new String[0]),
+			true);
 
 		getLog().info("Project root: " + root);
 		getLog().info("Found known paths: \n" + finePrint(relativeKnownPaths));
@@ -85,18 +91,18 @@ public class VerifyMojo extends AbstractMojo {
 		return ret;
 	}
 
-	private static String[] extendPatterns(String[] patterns) throws MojoFailureException {
+	private static String[] extendPatterns(String[] patterns, boolean tailOnly) throws MojoFailureException {
 		if (null == patterns) {
 			return null;
 		}
 		String[] ret = new String[patterns.length];
 		for (int i = 0; i < patterns.length; ++i) {
-			ret[i] = extendPattern(patterns[i]);
+			ret[i] = extendPattern(patterns[i], tailOnly);
 		}
 		return ret;
 	}
 
-	private static String extendPattern(String pattern) throws MojoFailureException {
+	private static String extendPattern(String pattern, boolean tailOnly) throws MojoFailureException {
 		final String separator = File.separator;
 		final String prefix = "**" + separator;
 		final String suffix = separator + "**";
@@ -112,7 +118,11 @@ public class VerifyMojo extends AbstractMojo {
 		if (ret.startsWith(prefix)) {
 			throw new MojoFailureException("Includes/excludes pattern must not start with " + prefix + ": " + pattern);
 		}
-		return prefix + ret + suffix;
+		if (tailOnly) {
+			return ret + suffix;
+		} else {
+			return prefix + ret + suffix;
+		}
 	}
 
 	private static String finePrint(Iterable<String> strings) {
@@ -133,7 +143,13 @@ public class VerifyMojo extends AbstractMojo {
 		Set<String> ret = new HashSet<String>();
 		for (MavenProject p : reactorProjects) {
 			ret.add(p.getBasedir().getAbsolutePath());
-			// include project's target directory - it is a known place as well
+		}
+		return ret;
+	}
+
+	private Set<String> getKnownTargetPaths() {
+		Set<String> ret = new HashSet<String>();
+		for (MavenProject p : reactorProjects) {
 			ret.add(p.getBuild().getDirectory());
 		}
 		return ret;
@@ -149,7 +165,12 @@ public class VerifyMojo extends AbstractMojo {
 		DirectoryScanner scanner = new DirectoryScanner();
 		scanner.setBasedir(dir);
 		scanner.setIncludes(extendedIncludes);
-		scanner.setExcludes(extendedExcludes);
+
+		List<String> allExcludes = new ArrayList<String>();
+		allExcludes.addAll(Arrays.asList(extendedExcludes));
+		allExcludes.addAll(Arrays.asList(targetDirExcludes));
+
+		scanner.setExcludes(allExcludes.toArray(new String[0]));
 		scanner.setCaseSensitive(isCaseSensitive);
 		scanner.scan();
 		List<File> ret = new ArrayList<File>();
