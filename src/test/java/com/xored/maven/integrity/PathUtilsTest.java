@@ -11,6 +11,9 @@ public class PathUtilsTest {
 		Assert.assertEquals("/", getCommonPath("/hme/a", "/home/b"));
 		Assert.assertEquals("/", getCommonPath("/", "/"));
 		Assert.assertEquals("/hh", getCommonPath("/hh", "/hh"));
+
+		String pref = "/Users/dima/itest/module-integrity/module-integrity-maven-plugin";
+		Assert.assertEquals(pref, getCommonPath(pref + "/target", pref));
 	}
 
 	private static String getCommonPath(String... paths) {

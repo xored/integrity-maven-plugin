@@ -43,7 +43,7 @@ public class VerifyMojo extends AbstractMojo {
 	private MatchPatterns[] includesPatterns;
 	private MatchPatterns[] extendedIncludesPatterns;
 
-	private Set<String> relativeModulePaths;
+	private Set<String> relativeKnownPaths;
 
 	private Set<String> missedPaths = new HashSet<String>();
 
@@ -62,12 +62,12 @@ public class VerifyMojo extends AbstractMojo {
 		includesPatterns = createMatchPatterns(includes);
 		extendedIncludesPatterns = createMatchPatterns(extendedIncludes);
 
-		Set<String> modulePaths = getIncludedModulePaths();
-		File root = getRoot(modulePaths);
-		relativeModulePaths = PathUtils.relativizePaths(root, modulePaths);
+		Set<String> knownPaths = getKnownPaths();
+		File root = getRoot(knownPaths);
+		relativeKnownPaths = PathUtils.relativizePaths(root, knownPaths);
 
 		getLog().info("Project root: " + root);
-		getLog().info("Found modules: \n" + finePrint(relativeModulePaths));
+		getLog().info("Found known paths: \n" + finePrint(relativeKnownPaths));
 		getLog().info("Searching for missed modules...");
 		getLog().info("  includes: " + Arrays.toString(includes));
 		getLog().info("  excludes: " + Arrays.toString(excludes));
@@ -102,13 +102,15 @@ public class VerifyMojo extends AbstractMojo {
 		final String suffix = separator + "**";
 		String ret = pattern;
 		if (ret.startsWith(separator)) {
-			throw new MojoFailureException("Includes pattern must not start with " + separator + ": " + pattern);
+			throw new MojoFailureException("Includes/excludes pattern must not start with " + separator + ": " +
+				pattern);
 		}
 		if (ret.endsWith(separator)) {
-			throw new MojoFailureException("Includes pattern must not end with " + separator + ": " + pattern);
+			throw new MojoFailureException("Includes/excludes pattern must not end with " + separator + ": " +
+				pattern);
 		}
 		if (ret.startsWith(prefix)) {
-			throw new MojoFailureException("Includes pattern must not start with " + prefix + ": " + pattern);
+			throw new MojoFailureException("Includes/excludes pattern must not start with " + prefix + ": " + pattern);
 		}
 		return prefix + ret + suffix;
 	}
@@ -127,10 +129,12 @@ public class VerifyMojo extends AbstractMojo {
 		return new File(PathUtils.getCommonPath(paths.toArray(new String[0])));
 	}
 
-	private Set<String> getIncludedModulePaths() {
+	private Set<String> getKnownPaths() {
 		Set<String> ret = new HashSet<String>();
 		for (MavenProject p : reactorProjects) {
 			ret.add(p.getBasedir().getAbsolutePath());
+			// include project's target directory - it is a known place as well
+			ret.add(p.getBuild().getDirectory());
 		}
 		return ret;
 	}
@@ -166,7 +170,7 @@ public class VerifyMojo extends AbstractMojo {
 				break;
 			}
 		}
-		if (!relativeModulePaths.contains(module)) {
+		if (!relativeKnownPaths.contains(module)) {
 			missedPaths.add(module);
 		}
 	}

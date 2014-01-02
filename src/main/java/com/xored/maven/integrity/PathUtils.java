@@ -22,7 +22,7 @@ public final class PathUtils {
 			String thisFolder = folders[0][j];
 			boolean allMatched = true;
 			for (int i = 1; i < folders.length && allMatched; i++) {
-				if (folders[i].length < j) {
+				if (folders[i].length <= j) {
 					allMatched = false;
 					break;
 				}
