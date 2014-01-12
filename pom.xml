@@ -27,6 +27,7 @@
     <scm>
         <url>https://github.com/xored/integrity-maven-plugin</url>
         <connection>scm:git:git@github.com:xored/integrity-maven-plugin.git</connection>
+        <developerConnection>scm:git:git@github.com:xored/integrity-maven-plugin.git</developerConnection>
     </scm>
 
     <developers>
