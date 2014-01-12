@@ -11,6 +11,13 @@ public final class PathUtils {
 	private PathUtils() {
 	}
 
+	/**
+	 * Returns the longest parent path of the given paths.
+	 *
+	 * @param paths
+	 * 	paths
+	 * @return the longest parent path of the given paths. Never <tt>null</tt>.
+	 */
 	public static String getCommonPath(String[] paths) {
 		final String separator = File.separator;
 		StringBuilder ret = new StringBuilder();
@@ -43,6 +50,16 @@ public final class PathUtils {
 		return ret.toString();
 	}
 
+	/**
+	 * Returns the given absolute path relative to the given root directory. The logic is similar to {@link
+	 * URI#relativize(URI)}.
+	 *
+	 * @param root
+	 * 	root directory
+	 * @param path
+	 * 	absolute path
+	 * @return the given absolute path relative to the given root directory. Never <tt>null</tt>.
+	 */
 	public static String relativizePath(File root, String path) {
 		return relativizePaths(root, Arrays.asList(path)).iterator().next();
 	}

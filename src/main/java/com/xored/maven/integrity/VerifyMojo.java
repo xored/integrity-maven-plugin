@@ -72,13 +72,15 @@ public class VerifyMojo extends AbstractMojo {
 		targetDirExcludes = extendPatterns(PathUtils.relativizePaths(root, knownTargetPaths).toArray(new String[0]),
 			true);
 
-		getLog().info("Project root: " + root);
-		getLog().info("Found known paths: \n" + finePrint(relativeKnownPaths));
+		getLog().info("Detected project root: " + root);
+		getLog().debug("Found known paths: \n" + finePrint(relativeKnownPaths));
 		getLog().info("Searching for missed modules...");
-		getLog().info("  includes: " + Arrays.toString(includes));
-		getLog().info("  excludes: " + Arrays.toString(excludes));
+		getLog().debug("  includes: " + Arrays.toString(includes));
+		getLog().debug("  excludes: " + Arrays.toString(excludes));
 		visitDir(root);
-		if (!missedPaths.isEmpty()) {
+		if (missedPaths.isEmpty()) {
+			getLog().info("  no missed modules found");
+		} else {
 			throw new MojoFailureException(null, "Some modules are missing", finePrint(missedPaths));
 		}
 	}
