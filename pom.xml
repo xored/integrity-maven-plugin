@@ -9,7 +9,33 @@
 
     <name>Xored Integrity Maven Plugin</name>
 
-    <url>http://xored.com</url>
+    <description>
+        Maven plugin, which allows to verify the project's integrity by looking for potential modules,
+        which might have been missed from the build.
+    </description>
+
+    <url>https://github.com/xored/integrity-maven-plugin</url>
+
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <scm>
+        <url>https://github.com/xored/integrity-maven-plugin</url>
+        <connection>scm:git:git@github.com:xored/integrity-maven-plugin.git</connection>
+    </scm>
+
+    <developers>
+        <developer>
+            <id>dsavenko</id>
+            <name>Dmitry Savenko</name>
+            <email>dsavenko@xored.com</email>
+        </developer>
+    </developers>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -76,8 +102,17 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>2.4.2</version>
+                <configuration>
+                    <mavenExecutorId>forked-path</mavenExecutorId>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
+
     <profiles>
         <profile>
             <id>run-its</id>
@@ -116,6 +151,34 @@
                     </plugin>
                 </plugins>
 
+            </build>
+        </profile>
+
+        <profile>
+            <id>release-sign-artifacts</id>
+            <activation>
+                <property>
+                    <name>performRelease</name>
+                    <value>true</value>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>1.4</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
             </build>
         </profile>
     </profiles>
