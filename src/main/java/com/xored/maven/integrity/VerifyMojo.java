@@ -37,6 +37,9 @@ public class VerifyMojo extends AbstractMojo {
 	@Parameter(alias = "case-sensitive", property = "integrity.modules.case-sensitive", defaultValue = "false")
 	private boolean isCaseSensitive;
 
+	private String[] nativeIncludes;
+	private String[] nativeExcludes;
+
 	private String[] extendedIncludes;
 	private String[] extendedExcludes;
 
@@ -59,9 +62,13 @@ public class VerifyMojo extends AbstractMojo {
 		if (null == includes || 0 == includes.length) {
 			includes = new String[]{DEFAULT_INCLUDE};
 		}
-		extendedIncludes = extendPatterns(includes, false);
-		extendedExcludes = extendPatterns(excludes, false);
-		includesPatterns = createMatchPatterns(includes);
+
+		nativeIncludes = PathUtils.toNative(includes);
+		nativeExcludes = PathUtils.toNative(excludes);
+
+		extendedIncludes = extendPatterns(nativeIncludes, false);
+		extendedExcludes = extendPatterns(nativeExcludes, false);
+		includesPatterns = createMatchPatterns(nativeIncludes);
 		extendedIncludesPatterns = createMatchPatterns(extendedIncludes);
 
 		Set<String> knownPaths = getKnownPaths();
@@ -73,15 +80,20 @@ public class VerifyMojo extends AbstractMojo {
 			true);
 
 		getLog().info("Detected project root: " + root);
-		getLog().debug("Found known paths: \n" + finePrint(relativeKnownPaths));
 		getLog().info("Searching for missed modules...");
-		getLog().debug("  includes: " + Arrays.toString(includes));
-		getLog().debug("  excludes: " + Arrays.toString(excludes));
+		if (getLog().isDebugEnabled()) {
+			getLog().debug("Found known paths: \n" + finePrint(relativeKnownPaths));
+			getLog().debug("  Includes: " + Arrays.toString(nativeIncludes));
+			getLog().debug("  Excludes: " + Arrays.toString(nativeExcludes));
+			getLog().debug("  Targets: " + Arrays.toString(targetDirExcludes));
+		}
 		visitDir(root);
 		if (missedPaths.isEmpty()) {
 			getLog().info("  no missed modules found");
 		} else {
-			throw new MojoFailureException(null, "Some modules are missing", finePrint(missedPaths));
+			String[] missed = PathUtils.toUnix(missedPaths.toArray(new String[0]));
+			Arrays.sort(missed);
+			throw new MojoFailureException(null, "Some modules are missing", finePrint(Arrays.asList(missed)));
 		}
 	}
 
@@ -144,7 +156,7 @@ public class VerifyMojo extends AbstractMojo {
 	private Set<String> getKnownPaths() {
 		Set<String> ret = new HashSet<String>();
 		for (MavenProject p : reactorProjects) {
-			ret.add(p.getBasedir().getAbsolutePath());
+			ret.add(PathUtils.toNative(p.getBasedir().getAbsolutePath()));
 		}
 		return ret;
 	}
@@ -152,7 +164,7 @@ public class VerifyMojo extends AbstractMojo {
 	private Set<String> getKnownTargetPaths() {
 		Set<String> ret = new HashSet<String>();
 		for (MavenProject p : reactorProjects) {
-			ret.add(p.getBuild().getDirectory());
+			ret.add(PathUtils.toNative(p.getBuild().getDirectory()));
 		}
 		return ret;
 	}
@@ -183,7 +195,7 @@ public class VerifyMojo extends AbstractMojo {
 	}
 
 	private void process(File dir, File f) {
-		String p = f.getAbsolutePath();
+		String p = PathUtils.toNative(f.getAbsolutePath());
 		String rel = PathUtils.relativizePath(dir, p);
 		String module = rel;
 		for (int i = 0; i < extendedIncludesPatterns.length; ++i) {

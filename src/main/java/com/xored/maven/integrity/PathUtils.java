@@ -2,13 +2,47 @@ package com.xored.maven.integrity;
 
 import java.io.File;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 public final class PathUtils {
 
 	private PathUtils() {
+	}
+
+	/**
+	 * Returns platform-specific representation of the given paths.
+	 *
+	 * @param paths
+	 * 	paths with / as separator.
+	 * @return platform-specific representation of the given paths.
+	 */
+	public static String[] toNative(String... paths) {
+		return replace("/", File.separator, paths);
+	}
+
+	public static String toNative(String path) {
+		return toNative(new String[]{path})[0];
+	}
+
+	public static String[] toUnix(String... paths) {
+		return replace(File.separator, "/", paths);
+	}
+
+	private static String[] replace(String src, String dst, String... paths) {
+		List<String> ret = new ArrayList<String>();
+		for (String path : paths) {
+			if (src.equals(dst)) {
+				ret.add(path);
+			} else {
+				ret.add(path.replace(src, dst));
+			}
+		}
+		return ret.toArray(new String[0]);
 	}
 
 	/**
@@ -23,7 +57,7 @@ public final class PathUtils {
 		StringBuilder ret = new StringBuilder();
 		String[][] folders = new String[paths.length][];
 		for (int i = 0; i < paths.length; i++) {
-			folders[i] = paths[i].split(separator);
+			folders[i] = paths[i].split(Pattern.quote(separator));
 		}
 		for (int j = 0; j < folders[0].length; j++) {
 			String thisFolder = folders[0][j];
@@ -69,7 +103,7 @@ public final class PathUtils {
 		final String separator = File.separator;
 		final URI baseUri = root.toURI();
 		for (String path : paths) {
-			String rel = baseUri.relativize(new File(path).toURI()).getPath();
+			String rel = toNative(baseUri.relativize(new File(path).toURI()).getPath());
 			if (rel.endsWith(separator)) {
 				rel = rel.substring(0, rel.length() - separator.length());
 			}
