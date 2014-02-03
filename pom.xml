@@ -3,7 +3,7 @@
 
     <groupId>com.xored.maven</groupId>
     <artifactId>integrity-maven-plugin</artifactId>
-    <version>1.0.2</version>
+    <version>1.0.3-SNAPSHOT</version>
     <packaging>maven-plugin</packaging>
 
     <name>Xored Integrity Maven Plugin</name>
@@ -27,7 +27,7 @@
         <url>https://github.com/xored/integrity-maven-plugin</url>
         <connection>scm:git:git@github.com:xored/integrity-maven-plugin.git</connection>
         <developerConnection>scm:git:git@github.com:xored/integrity-maven-plugin.git</developerConnection>
-        <tag>integrity-maven-plugin-1.0.2</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <developers>
