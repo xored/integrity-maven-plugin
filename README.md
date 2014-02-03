@@ -47,7 +47,7 @@ Add this to the parent pom of your project:
         </plugins>
     </build>
 
-(\* When I was writing this doc, the latest version was 1.0.1.)
+(\* When I was writing this doc, the latest version was 1.0.2.)
 
 After that, you can continue to build you project as usual (e.g. `mvn clean install`).
 
@@ -70,7 +70,7 @@ Suppose, you have the following config in your parent pom:
     <plugin>
         <groupId>com.xored.maven</groupId>
         <artifactId>integrity-maven-plugin</artifactId>
-        <version>1.0.1</version>
+        <version>1.0.2</version>
         <executions>
             <execution>
                 <id>verify-modules</id>
