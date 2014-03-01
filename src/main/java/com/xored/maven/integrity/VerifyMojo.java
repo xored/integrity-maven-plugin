@@ -17,7 +17,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-@Mojo(name = "verify-modules", defaultPhase = LifecyclePhase.PROCESS_SOURCES, aggregator = true)
+/**
+ * Scans project directory structure in attempt to find missed (not included to the build) modules. If it finds any
+ * missed modules, it marks the build failed.
+ */
+@Mojo(name = "verify-modules", defaultPhase = LifecyclePhase.VALIDATE, aggregator = true)
 public class VerifyMojo extends AbstractMojo {
 
 	private static final String DEFAULT_INCLUDE = "pom.xml";
@@ -28,12 +32,30 @@ public class VerifyMojo extends AbstractMojo {
 	@Parameter(defaultValue = "${project}", readonly = true)
 	private MavenProject project;
 
+	/**
+	 * Specifies, which directories should be considered modules.
+	 * Ant patterns, which are applied to paths, relative to the project root. It is implied,
+	 * that each pattern starts with **&#47; and ends with &#47;**. You should not specify this explicitly.
+	 * If not specified, each directory, which contains pom.xml file, is a module.
+	 * <p>Exact module directory is determined by the first path element, which matches the pattern
+	 * (not counting the implied **&#47).</p>
+	 */
 	@Parameter(property = "integrity.modules.includes")
 	private String[] includes;
 
+	/**
+	 * Specifies, which directories should <b>not</b> be considered modules, even if they meet includes criteria.
+	 * Ant patterns, which are applied to paths, relative to the project root. It is implied,
+	 * that each pattern starts and ends with **&#47;. You should not specify this explicitly.
+	 * <p>Exact module directory is determined by the first path element, which matches the pattern
+	 * (not counting the implied **&#47).</p>
+	 */
 	@Parameter(property = "integrity.modules.excludes")
 	private String[] excludes;
 
+	/**
+	 * Allows to do case-sensitive search. Use with caution, since this may make builds platform-dependent.
+	 */
 	@Parameter(alias = "case-sensitive", property = "integrity.modules.case-sensitive", defaultValue = "false")
 	private boolean isCaseSensitive;
 
