@@ -17,4 +17,4 @@ Things get worse, when many people with wide range of experience and responsibil
 This plugin scans project directory structure in attempt to find missed (not included to the build) modules.
 If it finds any missed modules, it marks the build failed.
 
-For additional information, please take a look at the [site index](site/markdown/index.md).
+For additional information, please take a look at the [site index](src/site/markdown/index.md).
