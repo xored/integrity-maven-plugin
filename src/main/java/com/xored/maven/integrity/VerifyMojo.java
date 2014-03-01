@@ -93,8 +93,20 @@ public class VerifyMojo extends AbstractMojo {
 		} else {
 			String[] missed = PathUtils.toUnix(missedPaths.toArray(new String[0]));
 			Arrays.sort(missed);
-			throw new MojoFailureException(null, "Some modules are missing", finePrint(Arrays.asList(missed)));
+			throw new MojoFailureException(null, getShortFailureMsg(), getLongFailureMsg(missed));
 		}
+	}
+
+	private static String getShortFailureMsg() {
+		// for some reason Maven repeats this message 2 times. It looks ugly, so I set it empty
+		return "";
+	}
+
+	private static String getLongFailureMsg(String[] missed) {
+		return "Directories below look like modules, but they are not in the build. " +
+			"If they are indeed modules, add them to the build. " +
+			"If they're not modules, modify include/exclude criteria so, that they are not recognized as modules:\n" +
+			finePrint(Arrays.asList(missed));
 	}
 
 	private static MatchPatterns[] createMatchPatterns(String[] patterns) {

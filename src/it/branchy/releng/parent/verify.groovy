@@ -9,7 +9,7 @@ log.eachLine {
         } else {
             missedStarted = false
         }
-    } else if (it.endsWith("Some modules are missing:")) {
+    } else if (it.endsWith("that they are not recognized as modules:")) {
         missedStarted = true
     }
 }
