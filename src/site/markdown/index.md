@@ -22,13 +22,6 @@ Basic Setup
 
 Add this to the parent pom of your project:
 
-    <pluginRepositories>
-        <pluginRepository>
-            <id>xored-releases</id>
-            <url>http://maven.xored.com/nexus/content/repositories/releases/</url>
-        </pluginRepository>
-    </pluginRepositories>
-
     <build>
         <plugins>
             <plugin>
